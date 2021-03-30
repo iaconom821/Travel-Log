@@ -39,7 +39,7 @@ let selectedState = {}
 
 
 
-
+//Initial Fetch, populates left side state board when searched
 fetch('http://localhost:3000/states')
 .then(res => res.json())
 .then(jsonArray =>
@@ -70,6 +70,9 @@ fetch('http://localhost:3000/states')
         stateSpan.append(stateP, stateImg, stateVisitP, stateDeleteButton, addToPassportButton)
         statesDiv.append(stateSpan)
 
+        
+        //  Delete from "pool" 
+
     stateDeleteButton.addEventListener("click", () => {
             fetch(`http://localhost:3000/states/${jsonObj.id}`, {
                 method: "DELETE", 
@@ -80,9 +83,9 @@ fetch('http://localhost:3000/states')
             .then(res => stateSpan.remove())
         
             }
-    
-
     )
+
+        //addds selected state to Passport, along with existing comments and info
     addToPassportButton.addEventListener("click", () =>{
         selectedState = Object.assign(jsonObj)
 
@@ -99,7 +102,7 @@ fetch('http://localhost:3000/states')
         
         const stateDescriptP = document.createElement('p')
             stateDescriptP.className = 'description'
-            stateDescriptP.innerText = selectedState.extract
+            stateDescriptP.innerText = selectedState.description
         
         const commentForm = document.createElement('form')
             commentForm.id = 'comment-form'
@@ -118,11 +121,33 @@ fetch('http://localhost:3000/states')
             commentSubmit.id = 'comment-submit'
             commentSubmit.value = 'Add Entry'
 
-        commentForm.append(commentTitleInput, commentEntryInput, commentSubmit)
+        const passportDeleteButton = document.createElement("button")
+            passportDeleteButton.className = 'delete-button'
+            passportDeleteButton.innerText = "Delete"
 
-        passportSpan.append(passportP, passportImg, stateDescriptP, commentForm)
+            const commentList = document.createElement("ul")
+            commentList.classList.add("comment-content")
+
+            //add comments
+            for(key in jsonObj.comments){
+                const commentLi = document.createElement("li")
+                    commentLi.innerText = `${key}: ${jsonObj.comments[key]}`
+                    commentList.append(commentLi)
+            }
+
+        commentForm.append(commentTitleInput, commentEntryInput, commentSubmit )
+
+        passportSpan.append(passportP, passportImg, stateDescriptP, commentForm, passportDeleteButton, commentList)
 
         passport.append(passportSpan)
+
+        
+
+        passportDeleteButton.addEventListener("click", () => {
+             passportSpan.remove()
+        
+        }
+    )
 
         commentForm.addEventListener('submit', (evt) => {
             evt.preventDefault()
@@ -138,7 +163,15 @@ fetch('http://localhost:3000/states')
                 })
             })
             .then(res => res.json())
-            .then(newObjArray => {
+            .then(newObj => {
+                commentList.innerHTML= ' '
+                for(key in newObj.comments){
+                    const commentLi = document.createElement("li")
+                        commentLi.innerText = `${key}: ${newObj.comments[key]}`
+                        commentList.append(commentLi)
+                }
+                    
+                
 
             })
         })
@@ -148,7 +181,7 @@ fetch('http://localhost:3000/states')
     })
 )
 
-
+//form for adding new comments to the passport div
 
 form.addEventListener("submit", function (evt) {
     evt.preventDefault();
@@ -196,13 +229,15 @@ form.addEventListener("submit", function (evt) {
                     stateDeleteButton.innerText = "Delete"
                 
                 const addToPassportButton = document.createElement("button")
-                        addToPassportButton.className = 'passport-button'
-                        addToPassportButton.innerText = 'Add to Passport'
-
+                    addToPassportButton.className = 'passport-button'
+                    addToPassportButton.innerText = 'Add to Passport'
+                
                 
                 stateSpan.append(stateP, stateImg, stateDeleteButton, addToPassportButton)
 
                 statesDiv.append(stateSpan)
+
+                //
 
                 stateDeleteButton.addEventListener("click", () => {
                     fetch(`http://localhost:3000/states/${jsonObj.id}`, {
@@ -215,6 +250,7 @@ form.addEventListener("submit", function (evt) {
                 
                 }
             )
+            //catches error for false searches
             .catch(alert("That's Not A State, ya donut"))
         })
     
