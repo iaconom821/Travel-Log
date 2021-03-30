@@ -31,7 +31,13 @@ const statesDiv = document.querySelector('#state-list')
 
 const passport = document.querySelector('#passport')
 
-const newStates = {}
+const addStateForm = document.querySelector('#form')
+
+
+
+let selectedState = {}
+
+
 
 
 fetch('http://localhost:3000/states')
@@ -61,7 +67,7 @@ fetch('http://localhost:3000/states')
         addToPassportButton.innerText = 'Add to Passport'
         
     
-        stateSpan.append(stateP, stateImg, stateVisitsP, stateDeleteButton, addToPassportButton)
+        stateSpan.append(stateP, stateImg, stateVisitP, stateDeleteButton, addToPassportButton)
         statesDiv.append(stateSpan)
 
     stateDeleteButton.addEventListener("click", () => {
@@ -78,13 +84,67 @@ fetch('http://localhost:3000/states')
 
     )
     addToPassportButton.addEventListener("click", () =>{
-        newStates = jsonObj
+        selectedState = Object.assign(jsonObj)
 
-        let stateTitle = document.createElement("span")
-            stateTitle.
+        const passportSpan = document.createElement('span');
+            passportSpan.id = selectedState.name
+        
+        const passportP = document.createElement('p');
+            passportP.className = 'stateP'
+            passportP.innerText = selectedState.name
+        
+        const passportImg = document.createElement('img')
+            passportImg.className = 'stateImg'
+            passportImg.src = selectedState.flag
+        
+        const stateDescriptP = document.createElement('p')
+            stateDescriptP.className = 'description'
+            stateDescriptP.innerText = selectedState.extract
+        
+        const commentForm = document.createElement('form')
+            commentForm.id = 'comment-form'
+        
+        const commentTitleInput = document.createElement('input')
+            commentTitleInput.type = 'text'
+            commentTitleInput.name = 'title'
+            commentTitleInput.placeholder = 'Add Title'
+        
+        const commentEntryInput = document.createElement('textarea')
+            commentEntryInput.id = 'entry'
+            commentEntryInput.placeholder = 'New Entry'
+        
+        const commentSubmit = document.createElement('input')
+            commentSubmit.type = 'submit'
+            commentSubmit.id = 'comment-submit'
+            commentSubmit.value = 'Add Entry'
 
-    })
+        commentForm.append(commentTitleInput, commentEntryInput, commentSubmit)
 
+        passportSpan.append(passportP, passportImg, stateDescriptP, commentForm)
+
+        passport.append(passportSpan)
+
+        commentForm.addEventListener('submit', (evt) => {
+            evt.preventDefault()
+            selectedState.comments = Object.assign(selectedState.comments, {[evt.target.title.value]: evt.target.entry.value})
+            fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify({
+                    comments: Object.assign(selectedState.comments, {[evt.target.title.value]: evt.target.entry.value})
+                })
+            })
+            .then(res => res.json())
+            .then(newObjArray => {
+
+            })
+        })
+        
+
+        })
     })
 )
 
@@ -109,12 +169,13 @@ form.addEventListener("submit", function (evt) {
                     name: `${stateInfo.title}`,
                     flag: `${stateInfo.thumbnail.source}`,
                     description: `${stateInfo.extract}`,
-                    visits: 0
+                    visits: 0,
+                    comments: {}
                 })
             })
             .then(res=>res.json())
             .then(jsonObj => {
-                Object.assign(newStates, jsonObj)
+                Object.assign (selectedState, jsonObj)
                 //console.log(newState)
                 const stateSpan = document.createElement('span');
                     stateSpan.id = jsonObj.name
@@ -157,5 +218,5 @@ form.addEventListener("submit", function (evt) {
             .catch(alert("That's Not A State, ya donut"))
         })
     
-        })
+    })
 })
