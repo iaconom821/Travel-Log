@@ -29,6 +29,8 @@ const form = document.querySelector('#state-form')
 
 const statesDiv = document.querySelector('#state-list')
 
+const passport = document.querySelector('#passport')
+
 const newStates = {}
 
 
@@ -59,10 +61,10 @@ fetch('http://localhost:3000/states')
         addToPassportButton.innerText = 'Add to Passport'
         
     
-    stateSpan.append(stateP, stateImg, stateDeleteButton, addToPassportButton)
-    statesDiv.append(stateSpan)
+        stateSpan.append(stateP, stateImg, stateVisitsP, stateDeleteButton, addToPassportButton)
+        statesDiv.append(stateSpan)
 
-        stateDeleteButton.addEventListener("click", () => {
+    stateDeleteButton.addEventListener("click", () => {
             fetch(`http://localhost:3000/states/${jsonObj.id}`, {
                 method: "DELETE", 
                 headers: {
@@ -71,8 +73,17 @@ fetch('http://localhost:3000/states')
             })
             .then(res => stateSpan.remove())
         
-        }
+            }
+    
+
     )
+    addToPassportButton.addEventListener("click", () =>{
+        newStates = jsonObj
+
+        let stateTitle = document.createElement("span")
+            stateTitle.
+
+    })
 
     })
 )
