@@ -49,9 +49,31 @@ fetch('http://localhost:3000/states')
 
     const stateVisitP = document.createElement('p')
         stateVisitP.innerText = jsonObj.visits
+
+    const stateDeleteButton = document.createElement("button")
+          stateDeleteButton.className = 'delete-button'
+          stateDeleteButton.innerText = "Delete"
+
+    const addToPassportButton = document.createElement("button")
+        addToPassportButton.className = 'passport-button'
+        addToPassportButton.innerText = 'Add to Passport'
+        
     
-    stateSpan.append(stateP, stateImg)
+    stateSpan.append(stateP, stateImg, stateDeleteButton, addToPassportButton)
     statesDiv.append(stateSpan)
+
+        stateDeleteButton.addEventListener("click", () => {
+            fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                method: "DELETE", 
+                headers: {
+                    "Content-Type": "application/json"
+                }  
+            })
+            .then(res => stateSpan.remove())
+        
+        }
+    )
+
     })
 )
 
@@ -59,9 +81,9 @@ fetch('http://localhost:3000/states')
 
 form.addEventListener("submit", function (evt) {
     evt.preventDefault();
-    console.log(evt)
+    //console.log(evt)
     const newState = evt.target.newState.value
-    console.log(newState)
+    //console.log(newState)
     fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${newState}`)
         .then(res => res.json())
         .then(stateInfo => {
@@ -82,7 +104,7 @@ form.addEventListener("submit", function (evt) {
             .then(res=>res.json())
             .then(jsonObj => {
                 Object.assign(newStates, jsonObj)
-                console.log(newState)
+                //console.log(newState)
                 const stateSpan = document.createElement('span');
                     stateSpan.id = jsonObj.name
                 
@@ -96,9 +118,33 @@ form.addEventListener("submit", function (evt) {
 
                 const stateVisitP = document.createElement('p')
                     stateVisitP.innerText = jsonObj.visits
+
+                const stateDeleteButton = document.createElement("button")
+                    stateDeleteButton.className = 'delete-button'
+                    stateDeleteButton.innerText = "Delete"
                 
-                stateSpan.append(stateP, stateImg)
+                const addToPassportButton = document.createElement("button")
+                        addToPassportButton.className = 'passport-button'
+                        addToPassportButton.innerText = 'Add to Passport'
+
+                
+                stateSpan.append(stateP, stateImg, stateDeleteButton, addToPassportButton)
+
                 statesDiv.append(stateSpan)
-            })
+
+                stateDeleteButton.addEventListener("click", () => {
+                    fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                        method: "DELETE", 
+                        headers: {
+                            "Content-Type": "application/json"
+                        }  
+                    })
+                    .then(res => stateSpan.remove())
+                
+                }
+            )
+            .catch(alert("That's Not A State, ya donut"))
+        })
+    
         })
 })
