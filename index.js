@@ -16,6 +16,8 @@ const statesInDb = []
 
 let selectedState = {}
 
+let statesInPassport = []
+
 
 
 //Initial Fetch, populates left side state board from our database
@@ -166,6 +168,12 @@ function stateBarCreateElements(jsonObj) {
 
     addToPassportButton.addEventListener("click", () =>{
         selectedState = Object.assign(jsonObj)
+        if(statesInPassport.includes(jsonObj.name.toLowerCase())){
+        
+            return alert("WHOA! Where d'ya think you're going, pal?! (Visit Added)")
+        }
+
+         statesInPassport.push(jsonObj.name.toLowerCase())
 
         const passportSpan = document.createElement('span');
             passportSpan.className = 'passport-card'
@@ -201,7 +209,7 @@ function stateBarCreateElements(jsonObj) {
 
         const passportDeleteButton = document.createElement("button")
             passportDeleteButton.className = 'delete-button'
-            passportDeleteButton.innerText = "Delete"
+            passportDeleteButton.innerText = "Remove From Passprt"
 
             const commentList = document.createElement("ul")
             commentList.classList.add("comment-content")
@@ -215,9 +223,31 @@ function stateBarCreateElements(jsonObj) {
                 const entryP = document.createElement('p')
                     entryP.innerText = `Entry: ${jsonObj.comments[key]}`
                 const dateP = document.createElement('p')
-                    dateP.innerText = `${today.getDay()} ${today.getMonth()} ${today.getFullYear()}`
+                    dateP.innerText = `${today.getDay()}/${today.getMonth()}/${today.getFullYear()}`
+                const commentDelete =document.createElement('button')
+                        commentDelete.innerText = "Delete Comment"
+                        commentDelete.className = "comment_delete"
+                    commentDelete.addEventListener('click', () => {
+                        delete jsonObj.comments[key]
+                        fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                            method: "PATCH", 
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                comments: jsonObj.comments
+                            })
+                            
+                            
+                        })
+                        .then(res => res.json())
+                        .then(newData => {
+                            commentLi.remove()
+                        })
+                    })
 
-                commentLi.append(dateP, titleP, entryP)
+
+                commentLi.append(dateP, titleP, entryP, commentDelete)
 
                 commentList.append(commentLi)
             }
@@ -229,7 +259,9 @@ function stateBarCreateElements(jsonObj) {
         passport.append(passportSpan)
 
         passportDeleteButton.addEventListener("click", () => {
+            statesInPassport.indexOf(jsonObj.name.toLowerCase())
             passportSpan.remove()
+
         
         })
 
@@ -250,11 +282,44 @@ function stateBarCreateElements(jsonObj) {
             .then(newObj => {
                 commentList.innerHTML= ' '
                 for(key in newObj.comments){
+                    let today = new Date()
                     const commentLi = document.createElement("li")
-                        commentLi.innerText = `${key}: ${newObj.comments[key]}`
-                        commentList.append(commentLi)
-                }
-            })
+                    const titleP = document.createElement('p')
+                        titleP.innerText = `Title: ${key}`
+                    const entryP = document.createElement('p')
+                        entryP.innerText = `Entry: ${newObj.comments[key]}`
+                    const dateP = document.createElement('p')
+                        dateP.innerText = `${today.getDay()}/${today.getMonth()}/${today.getFullYear()}`
+                    const commentDelete =document.createElement('button')
+                            commentDelete.innerText = "Delete Comment"
+                            commentDelete.className = "comment_delete"
+
+
+                    commentDelete.addEventListener('click', () => {
+                            delete newObj.comments[key]
+                            fetch(`http://localhost:3000/states/${newObj.id}`, {
+                                method: "PATCH", 
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    comments: newObj.comments
+                                })
+                                
+                                
+                            })
+                            .then(res => res.json())
+                            .then(newData => {
+                                commentLi.remove()
+                            })
+                            
+                        })
+
+                    commentLi.append(dateP, titleP, entryP, commentDelete)
+                    commentList.append(commentLi)
+                    evt.target.title.value = ``
+                    evt.target.entry.value = ``
+            }})
         })
     })
 }
