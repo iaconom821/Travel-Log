@@ -31,13 +31,14 @@ font-family: Georgia, 'Times New Roman', Times, serif;
 
 /*"pool" individual span*/
 
-.state-sidebar {
+.state-item {
 flex-basis: 10%;
 font-family: Georgia, 'Times New Roman', Times, serif;
 border: black;
 border-style: dashed;
 border-width: 2px;
 justify-content: center;
+
 
 }
 
@@ -49,7 +50,9 @@ justify-content: center;
 
 /*State Image*/
 img.stateImg {
-    width: 160px
+    width: 160px;
+    
+    
 }
 
 /* ALL delete buttons*/
