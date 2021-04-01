@@ -1,0 +1,107 @@
+
+/*Whole Page*/
+* {
+font-family: "Lobster", "sans-serif"
+}
+
+
+/*Top Search Bar*/
+div#form {
+    display: flex;
+    justify-content: center;
+    height: 150px;
+    background-image: url(https://thumbs.dreamstime.com/b/rough-faded-american-flag-background-patriotic-wallpaper-rough-faded-us-american-flag-background-patriotic-wallpaper-188571992.jpg);
+    background-size: cover;
+}
+#state-form {
+    align-items: center;
+    
+}
+
+
+/*"pool" sidebar container*/
+#state-list {
+display: flex;
+flex-direction: column;
+justify-content: space-evenly;
+width: fit-content;
+background-color: bisque;
+font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+/*"pool" individual span*/
+
+.state-item {
+flex-basis: 10%;
+font-family: Georgia, 'Times New Roman', Times, serif;
+border: black;
+border-style: dashed;
+border-width: 2px;
+justify-content: center;
+
+
+}
+
+/*State Title*/
+.stateP {
+    padding-left: 45px;
+
+}
+
+/*State Image*/
+img.stateImg {
+    width: 160px;
+    
+    
+}
+
+/* ALL delete buttons*/
+.delete-button {
+
+}
+
+div#passport {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 161px;
+    left: 300px;
+    
+}
+
+div#passport > span {
+
+border: black;
+border-style: dashed;
+border-width: 2px;
+
+}
+
+/*ALL passport buttons*/
+.passport-button {
+
+}
+
+/*ALL descriptions */
+p.description {
+
+}
+
+/*ALL comment forms*/
+#comment-form {
+
+}
+
+/*ul holding comments*/
+ul.comment-content {
+    
+}
+
+/*NEED - li with comment text*/
+li.comment-text {
+
+}
+
+
+
+

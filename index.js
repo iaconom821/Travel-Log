@@ -1,29 +1,4 @@
-// let stateArray = ["Alabama", "New_York_(state)", "California", "New_Jersey", "Florida"]
-
-// document.addEventListener("DOMContentLoaded", () => {
-    
-
-//     stateArray.forEach( function (state) { 
-//         fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${state}`)
-//         .then(res => res.json())
-//         .then(stateInfo => {
-//             fetch('http://localhost:3000/states', {
-//                 method: "POST",
-//                 headers: {
-//                     "Content-type": "application/json",
-//                     accept: "application/json"
-//                 },
-//                 body: JSON.stringify({
-//                     name: `${stateInfo.title}`,
-//                     flag: `${stateInfo.thumbnail.source}`,
-//                     description: `${stateInfo.extract}`,
-//                     visits: 0
-//                 })
-//             })
-//         })
-//         .catch(alert("That's Not A State, ya donut"))
-//     })    
-// })
+//stable elements on the dom selected
 
 const form = document.querySelector('#state-form')
 
@@ -31,15 +6,84 @@ const statesDiv = document.querySelector('#state-list')
 
 const passport = document.querySelector('#passport')
 
-const newStates = {}
+const addStateForm = document.querySelector('#form')
 
+//global objects to check the values of states and hold the selected state when passport is loaded
+
+const allStates = ["Florida", "Nevada", "Wyoming", "Idaho", "Montana", "Utah", "Maine", "New Hampshire", "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Hawaii", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Nebraska", "New Jersey", "New Mexico", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Vermont", "Virginia", "West Virginia", "Wisconsin", "New York", "Georgia", "Washington"]
+
+const statesInDb = []
+
+let selectedStates = {}
+
+let statesInPassport = []
+
+
+
+//Initial Fetch, populates left side state board from our database
 
 fetch('http://localhost:3000/states')
 .then(res => res.json())
 .then(jsonArray =>
     jsonArray.forEach(function(jsonObj) {
+        stateBarCreateElements(jsonObj)
+    })
+)
+
+//form for adding new comments to the passport div
+
+form.addEventListener("submit", function (evt) {
+    evt.preventDefault();
+    //console.log(evt)
+    if(statesInDb.find(state => evt.target.newState.value.toLowerCase() === state.toLowerCase())) {
+        return alert("You've already been there jabroni, add a visit!")
+    }
+    statesInDb.push(evt.target.newState.value)
+    if(allStates.find(state => evt.target.newState.value.toLowerCase() === state.toLowerCase())){
+        let newState = ""
+        if(evt.target.newState.value.toLowerCase() === "georgia") {
+            newState = "Georgia_(U.S._state)"
+        } else if (evt.target.newState.value.toLowerCase() === "new york"){
+            newState = "New_York_(state)"
+        } else if (evt.target.newState.value.toLowerCase() === "washington"){
+            newState = "Washington_(state)"
+        } else {
+            newState = evt.target.newState.value
+        }
+        //console.log(newState)
+        fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${newState}`)
+            .then(res => res.json())
+            .then(stateInfo => {
+                //console.log(stateInfo)
+                fetch('http://localhost:3000/states', {
+                    method: "POST",
+                    headers: {
+                        "Content-type": "application/json",
+                        accept: "application/json"
+                    },
+                    body: JSON.stringify({
+                        name: `${stateInfo.title}`,
+                        flag: `${stateInfo.thumbnail.source}`,
+                        description: `${stateInfo.extract}`,
+                        visits: 0,
+                        comments: {}
+                    })
+                })
+                .then(res=>res.json())
+                .then(jsonObj => {
+                    stateBarCreateElements(jsonObj)
+                })
+            }) 
+        } else {
+            alert("That's not a state, ya donut!")
+        }    
+})
+
+function stateBarCreateElements(jsonObj) {
+    statesInDb.push(jsonObj.name.toLowerCase())
+    selectedStates[jsonObj.name] = {...selectedStates[jsonObj.name], ...jsonObj.comments}
     const stateSpan = document.createElement('span');
-        stateSpan.id = jsonObj.name
+        stateSpan.className = 'state-item'
     
     const stateP = document.createElement('p');
         stateP.className = 'stateP'
@@ -50,112 +94,230 @@ fetch('http://localhost:3000/states')
         stateImg.src = jsonObj.flag
 
     const stateVisitP = document.createElement('p')
-        stateVisitP.innerText = jsonObj.visits
+        stateVisitP.innerText = `Visits: ${jsonObj.visits}`
+    
+    const stateVisitAddButton = document.createElement('button')
+        stateVisitAddButton.innerText = 'Add Visit'
+    
+    const stateVisitDeleteButton = document.createElement('button')
+        stateVisitDeleteButton.innerText = 'Delete Visit'
 
     const stateDeleteButton = document.createElement("button")
-          stateDeleteButton.className = 'delete-button'
-          stateDeleteButton.innerText = "Delete"
-
+        stateDeleteButton.className = 'delete-button'
+        stateDeleteButton.innerText = "Delete"
+    
     const addToPassportButton = document.createElement("button")
         addToPassportButton.className = 'passport-button'
         addToPassportButton.innerText = 'Add to Passport'
-        
     
-        stateSpan.append(stateP, stateImg, stateVisitsP, stateDeleteButton, addToPassportButton)
-        statesDiv.append(stateSpan)
+    stateSpan.append(stateP, stateImg, stateVisitP, stateVisitAddButton, stateVisitDeleteButton, stateDeleteButton, addToPassportButton)
 
-    stateDeleteButton.addEventListener("click", () => {
-            fetch(`http://localhost:3000/states/${jsonObj.id}`, {
-                method: "DELETE", 
-                headers: {
-                    "Content-Type": "application/json"
-                }  
+    statesDiv.append(stateSpan)
+
+    stateVisitAddButton.addEventListener('click', () => {
+        fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-type": "application/json",
+                Accept: "application/json"
+            },
+            body: JSON.stringify({
+                visits: jsonObj.visits + 1
             })
-            .then(res => stateSpan.remove())
-        
-            }
-    
-
-    )
-    addToPassportButton.addEventListener("click", () =>{
-        newStates = jsonObj
-
-        let stateTitle = document.createElement("span")
-            stateTitle.
-
-    })
-
-    })
-)
-
-
-
-form.addEventListener("submit", function (evt) {
-    evt.preventDefault();
-    //console.log(evt)
-    const newState = evt.target.newState.value
-    //console.log(newState)
-    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${newState}`)
+        })
         .then(res => res.json())
-        .then(stateInfo => {
-            console.log(stateInfo)
-            fetch('http://localhost:3000/states', {
-                method: "POST",
+        .then(newObj => {
+            jsonObj.visits = newObj.visits
+            stateVisitP.innerText = `Visits: ${jsonObj.visits}`
+        })
+    })
+    // removes passport from the editing window
+    stateVisitDeleteButton.addEventListener('click', () => {
+        if(jsonObj.visits > 0) {
+            fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                method: "PATCH",
                 headers: {
                     "Content-type": "application/json",
                     accept: "application/json"
                 },
                 body: JSON.stringify({
-                    name: `${stateInfo.title}`,
-                    flag: `${stateInfo.thumbnail.source}`,
-                    description: `${stateInfo.extract}`,
-                    visits: 0
+                    visits: jsonObj.visits - 1
                 })
             })
-            .then(res=>res.json())
-            .then(jsonObj => {
-                Object.assign(newStates, jsonObj)
-                //console.log(newState)
-                const stateSpan = document.createElement('span');
-                    stateSpan.id = jsonObj.name
-                
-                const stateP = document.createElement('p');
-                    stateP.className = 'stateP'
-                    stateP.innerText = jsonObj.name
-                
-                const stateImg = document.createElement('img')
-                    stateImg.className = 'stateImg'
-                    stateImg.src = jsonObj.flag
+            .then(res => res.json())
+            .then(newObj => {
+                jsonObj.visits = newObj.visits
+                stateVisitP.innerText = `Visits: ${jsonObj.visits}`
+            })
+        }
+    })
 
-                const stateVisitP = document.createElement('p')
-                    stateVisitP.innerText = jsonObj.visits
+    stateDeleteButton.addEventListener("click", () => {
+        fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+            method: "DELETE", 
+            headers: {
+                "Content-Type": "application/json"
+            }  
+        })
+        .then(res => {
+            stateSpan.remove()
+            index = statesInDb.indexOf(jsonObj.name.toLowerCase())
+            statesInDb.splice(index, 1)
+        })
+    })
 
-                const stateDeleteButton = document.createElement("button")
-                    stateDeleteButton.className = 'delete-button'
-                    stateDeleteButton.innerText = "Delete"
-                
-                const addToPassportButton = document.createElement("button")
-                        addToPassportButton.className = 'passport-button'
-                        addToPassportButton.innerText = 'Add to Passport'
+    addToPassportButton.addEventListener("click", () =>{
+       
+        if(statesInPassport.includes(jsonObj.name.toLowerCase())){
+        
+            return alert("WHOA! Where d'ya think you're going, pal?! (Visit Added)")
+        }
 
-                
-                stateSpan.append(stateP, stateImg, stateDeleteButton, addToPassportButton)
+         statesInPassport.push(jsonObj.name.toLowerCase())
 
-                statesDiv.append(stateSpan)
+        const passportSpan = document.createElement('span');
+            passportSpan.className = 'passport-card'
+        
+        const passportP = document.createElement('p');
+            passportP.className = 'stateP'
+            passportP.innerText = jsonObj.name
+        
+        const passportImg = document.createElement('img')
+            passportImg.className = 'stateImg'
+            passportImg.src = jsonObj.flag
+        
+        const stateDescriptP = document.createElement('p')
+            stateDescriptP.className = 'description'
+            stateDescriptP.innerText = jsonObj.description
+        
+        const commentForm = document.createElement('form')
+            commentForm.id = 'comment-form'
+        
+        const commentTitleInput = document.createElement('input')
+            commentTitleInput.type = 'text'
+            commentTitleInput.name = 'title'
+            commentTitleInput.placeholder = 'Add Title'
+        
+        const commentEntryInput = document.createElement('textarea')
+            commentEntryInput.id = 'entry'
+            commentEntryInput.placeholder = 'New Entry'
+        
+        const commentSubmit = document.createElement('input')
+            commentSubmit.type = 'submit'
+            commentSubmit.id = 'comment-submit'
+            commentSubmit.value = 'Add Entry'
 
-                stateDeleteButton.addEventListener("click", () => {
-                    fetch(`http://localhost:3000/states/${jsonObj.id}`, {
-                        method: "DELETE", 
-                        headers: {
-                            "Content-Type": "application/json"
-                        }  
+        const passportDeleteButton = document.createElement("button")
+            passportDeleteButton.className = 'delete-button'
+            passportDeleteButton.innerText = "Remove From Passprt"
+
+            const commentList = document.createElement("ul")
+            commentList.classList.add("comment-content")
+
+            //add comments
+            for(key in selectedStates[jsonObj.name]){
+                let today = new Date()
+                const commentLi = document.createElement("li")
+                const titleP = document.createElement('p')
+                    titleP.innerText = `Title: ${key}`
+                const entryP = document.createElement('p')
+                    entryP.innerText = `Entry: ${selectedStates[jsonObj.name][key]}`
+                const dateP = document.createElement('p')
+                    dateP.innerText = `${today.getDay()}/${today.getMonth()}/${today.getFullYear()}`
+                const commentDelete =document.createElement('button')
+                        commentDelete.innerText = "Delete Comment"
+                        commentDelete.className = "comment_delete"
+                    commentDelete.addEventListener('click', () => {
+                        delete selectedStates[jsonObj.name][key]
+                        fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                            method: "PATCH", 
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                comments: selectedStates[jsonObj.name]
+                            })
+                            
+                            
+                        })
+                        .then(res => res.json())
+                        .then(newData => {
+                            commentLi.remove()
+                        })
                     })
-                    .then(res => stateSpan.remove())
-                
-                }
-            )
-            .catch(alert("That's Not A State, ya donut"))
+
+
+                commentLi.append(dateP, titleP, entryP, commentDelete)
+
+                commentList.append(commentLi)
+            }
+
+        commentForm.append(commentTitleInput, commentEntryInput, commentSubmit )
+
+        passportSpan.append(passportP, passportImg, stateDescriptP, commentForm, passportDeleteButton, commentList)
+
+        passport.append(passportSpan)
+
+        passportDeleteButton.addEventListener("click", () => {
+            const index = statesInPassport.indexOf(jsonObj.name.toLowerCase())
+            passportSpan.remove()
+            statesInPassport.splice(index, 1)
+        
         })
-    
+
+        commentForm.addEventListener('submit', (evt) => {
+            evt.preventDefault()
+            selectedStates[jsonObj.name] = Object.assign(selectedStates[jsonObj.name], {[evt.target.title.value]: evt.target.entry.value})
+            fetch(`http://localhost:3000/states/${jsonObj.id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json"
+                },
+                body: JSON.stringify({
+                    comments: Object.assign(selectedStates[jsonObj.name], {[evt.target.title.value]: evt.target.entry.value})
+                })
+            })
+            .then(res => res.json())
+            .then(newObj => {
+                commentList.innerHTML= ' '
+                for(key in newObj.comments){
+                    let today = new Date()
+                    const commentLi = document.createElement("li")
+                    const titleP = document.createElement('p')
+                        titleP.innerText = `Title: ${key}`
+                    const entryP = document.createElement('p')
+                        entryP.innerText = `Entry: ${newObj.comments[key]}`
+                    const dateP = document.createElement('p')
+                        dateP.innerText = `${today.getDay()}/${today.getMonth()}/${today.getFullYear()}`
+                    const commentDelete =document.createElement('button')
+                            commentDelete.innerText = "Delete Comment"
+                            commentDelete.className = "comment_delete"
+
+
+                    commentDelete.addEventListener('click', () => {
+                        delete selectedStates[jsonObj.name][evt.target.title.value]
+                            fetch(`http://localhost:3000/states/${newObj.id}`, {
+                                method: "PATCH", 
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    comments: newObj.comments
+                                })
+                            })
+                            .then(res => res.json())
+                            .then(newData => {
+                                commentLi.remove()
+                                
+                            })
+                        })
+
+                    commentLi.append(dateP, titleP, entryP, commentDelete)
+                    commentList.append(commentLi)
+                    evt.target.title.value = ``
+                    evt.target.entry.value = ``
+            }})
         })
-})
+    })
+}
