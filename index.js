@@ -14,7 +14,7 @@ const allStates = ["Florida", "Nevada", "Wyoming", "Idaho", "Montana", "Utah", "
 
 const statesInDb = []
 
-let selectedState = {}
+let selectedStates = {}
 
 let statesInPassport = []
 
@@ -81,7 +81,7 @@ form.addEventListener("submit", function (evt) {
 
 function stateBarCreateElements(jsonObj) {
     statesInDb.push(jsonObj.name.toLowerCase())
-    Object.assign (selectedState, jsonObj)
+    selectedStates[jsonObj.name] = {...selectedStates[jsonObj.name], ...jsonObj.comments}
     const stateSpan = document.createElement('span');
         stateSpan.className = 'state-item'
     
@@ -167,7 +167,7 @@ function stateBarCreateElements(jsonObj) {
     })
 
     addToPassportButton.addEventListener("click", () =>{
-        selectedState = Object.assign(jsonObj)
+       
         if(statesInPassport.includes(jsonObj.name.toLowerCase())){
         
             return alert("WHOA! Where d'ya think you're going, pal?! (Visit Added)")
@@ -180,15 +180,15 @@ function stateBarCreateElements(jsonObj) {
         
         const passportP = document.createElement('p');
             passportP.className = 'stateP'
-            passportP.innerText = selectedState.name
+            passportP.innerText = jsonObj.name
         
         const passportImg = document.createElement('img')
             passportImg.className = 'stateImg'
-            passportImg.src = selectedState.flag
+            passportImg.src = jsonObj.flag
         
         const stateDescriptP = document.createElement('p')
             stateDescriptP.className = 'description'
-            stateDescriptP.innerText = selectedState.description
+            stateDescriptP.innerText = jsonObj.description
         
         const commentForm = document.createElement('form')
             commentForm.id = 'comment-form'
@@ -215,27 +215,27 @@ function stateBarCreateElements(jsonObj) {
             commentList.classList.add("comment-content")
 
             //add comments
-            for(key in jsonObj.comments){
+            for(key in selectedStates[jsonObj.name]){
                 let today = new Date()
                 const commentLi = document.createElement("li")
                 const titleP = document.createElement('p')
                     titleP.innerText = `Title: ${key}`
                 const entryP = document.createElement('p')
-                    entryP.innerText = `Entry: ${jsonObj.comments[key]}`
+                    entryP.innerText = `Entry: ${selectedStates[jsonObj.name][key]}`
                 const dateP = document.createElement('p')
                     dateP.innerText = `${today.getDay()}/${today.getMonth()}/${today.getFullYear()}`
                 const commentDelete =document.createElement('button')
                         commentDelete.innerText = "Delete Comment"
                         commentDelete.className = "comment_delete"
                     commentDelete.addEventListener('click', () => {
-                        delete jsonObj.comments[key]
+                        delete selectedStates[jsonObj.name][key]
                         fetch(`http://localhost:3000/states/${jsonObj.id}`, {
                             method: "PATCH", 
                             headers: {
                                 "Content-Type": "application/json"
                             },
                             body: JSON.stringify({
-                                comments: jsonObj.comments
+                                comments: selectedStates[jsonObj.name]
                             })
                             
                             
@@ -259,15 +259,15 @@ function stateBarCreateElements(jsonObj) {
         passport.append(passportSpan)
 
         passportDeleteButton.addEventListener("click", () => {
-            statesInPassport.indexOf(jsonObj.name.toLowerCase())
+            const index = statesInPassport.indexOf(jsonObj.name.toLowerCase())
             passportSpan.remove()
-
+            statesInPassport.splice(index, 1)
         
         })
 
         commentForm.addEventListener('submit', (evt) => {
             evt.preventDefault()
-            selectedState.comments = Object.assign(selectedState.comments, {[evt.target.title.value]: evt.target.entry.value})
+            selectedStates[jsonObj.name] = Object.assign(selectedStates[jsonObj.name], {[evt.target.title.value]: evt.target.entry.value})
             fetch(`http://localhost:3000/states/${jsonObj.id}`, {
                 method: "PATCH",
                 headers: {
@@ -275,7 +275,7 @@ function stateBarCreateElements(jsonObj) {
                     Accept: "application/json"
                 },
                 body: JSON.stringify({
-                    comments: Object.assign(selectedState.comments, {[evt.target.title.value]: evt.target.entry.value})
+                    comments: Object.assign(selectedStates[jsonObj.name], {[evt.target.title.value]: evt.target.entry.value})
                 })
             })
             .then(res => res.json())
@@ -296,7 +296,7 @@ function stateBarCreateElements(jsonObj) {
 
 
                     commentDelete.addEventListener('click', () => {
-                            delete newObj.comments[key]
+                        delete selectedStates[jsonObj.name][evt.target.title.value]
                             fetch(`http://localhost:3000/states/${newObj.id}`, {
                                 method: "PATCH", 
                                 headers: {
@@ -305,14 +305,12 @@ function stateBarCreateElements(jsonObj) {
                                 body: JSON.stringify({
                                     comments: newObj.comments
                                 })
-                                
-                                
                             })
                             .then(res => res.json())
                             .then(newData => {
                                 commentLi.remove()
+                                
                             })
-                            
                         })
 
                     commentLi.append(dateP, titleP, entryP, commentDelete)
