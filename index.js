@@ -77,15 +77,10 @@ form.addEventListener("submit", function (evt) {
         }    
 })
 
-
-
-
-
 function stateBarCreateElements(jsonObj) {
     statesInDb.push(jsonObj.name.toLowerCase())
     console.log(jsonObj.name)
     let userStates = jsonObj
-    //selectedStates[jsonObj.name] = [...selectedStates[jsonObj.name], ...jsonObj.comments]
 
     const stateSpan = document.createElement('span');
         stateSpan.className = 'state-item'
@@ -115,12 +110,10 @@ function stateBarCreateElements(jsonObj) {
         stateDeleteButton.className = 'delete-button'
         stateDeleteButton.innerText = "Delete"
     
-    
-    
     stateSpan.append(stateP, stateImg, stateDescription, stateVisitP, stateVisitAddButton, stateVisitDeleteButton, stateDeleteButton)
 
     statesDiv.append(stateSpan)
-
+    
     stateVisitAddButton.addEventListener('click', () => {
         fetch(`http://localhost:3000/states/${jsonObj.id}`, {
             method: "PATCH",
@@ -138,7 +131,7 @@ function stateBarCreateElements(jsonObj) {
             stateVisitP.innerText = `Visits: ${jsonObj.visits}`
         })
     })
-    // removes passport from the editing window
+    
     stateVisitDeleteButton.addEventListener('click', () => {
         if(jsonObj.visits > 0) {
             fetch(`http://localhost:3000/states/${jsonObj.id}`, {
@@ -158,7 +151,7 @@ function stateBarCreateElements(jsonObj) {
             })
         }
     })
-
+    //deletes card from passport
     stateDeleteButton.addEventListener("click", () => {
         fetch(`http://localhost:3000/states/${jsonObj.id}`, {
             method: "DELETE", 
@@ -172,7 +165,4 @@ function stateBarCreateElements(jsonObj) {
             statesInDb.splice(index, 1)
         })
     })
-
-   
-    
 }
